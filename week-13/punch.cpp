@@ -40,13 +40,16 @@ void solve() {
   std::vector<Mix> best_mix(k+1);
   best_mix[0].cost = 0;
   
-  for (int vol = 1; vol <= k; vol++) {
-    for (const Beverage &b : beverages) {
-      int vol_without = std::max(vol - b.v, 0);
-      Mix new_mix = best_mix[vol_without] + b;
-      
-      if (new_mix > best_mix[vol])
-        best_mix[vol] = new_mix;
+  for (int vol = 0; vol < k; vol++) {
+    if (best_mix[vol].cost < std::numeric_limits<int>::max()) {
+      for (const Beverage &b : beverages) {
+        int new_vol = std::min(vol + b.v, k);
+        Mix new_mix = best_mix[vol] + b;
+        
+        if (new_mix > best_mix[new_vol]) {
+          best_mix[new_vol] = new_mix;
+        }
+      }
     }
   }
 
