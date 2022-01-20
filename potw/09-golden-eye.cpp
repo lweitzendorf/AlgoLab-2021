@@ -46,34 +46,33 @@ int main() {
     for (auto e = t.finite_edges_begin(); e != t.finite_edges_end(); ++e) {
       Index i1 = e->first->vertex((e->second+1)%3)->info();
       Index i2 = e->first->vertex((e->second+2)%3)->info();
-      // ensure smaller index comes first
       if (i1 > i2) std::swap(i1, i2);
       edges.emplace_back(i1, i2, t.segment(e).squared_length());
     }
 
     Index n_components = n + 2*m;
-    std::vector<std::unordered_set<int>> src_idx(n_components), target_idx(n_components);
+    std::vector<std::unordered_set<int>> mission_idx(n_components);
 
     for (int i = 0; i < m; i++) {
       int x0, y0, x1, y1;
       std::cin >> x0 >> y0 >> x1 >> y1;
 
-      K::Point_2 source(x0, y0); 
+      K::Point_2 source(x0, y0);
       auto v_s = t.nearest_vertex(source);
       K::FT s_dist = CGAL::squared_distance(v_s->point(), source);
       edges.emplace_back(v_s->info(), n+2*i, 4*s_dist);
-      src_idx[n+2*i].insert(i);
-      
+      mission_idx[n+2*i].insert(i);
+
       K::Point_2 target(x1, y1);
       auto v_t = t.nearest_vertex(target);
       K::FT t_dist = CGAL::squared_distance(v_t->point(), target);
       edges.emplace_back(v_t->info(), n+2*i+1, 4*t_dist);
-      target_idx[n+2*i+1].insert(i);
+      mission_idx[n+2*i+1].insert(i);
     }
 
     std::sort(edges.begin(), edges.end(),
-        [](const Edge& e1, const Edge& e2) -> bool {
-          return std::get<2>(e1) < std::get<2>(e2);
+              [](const Edge& e1, const Edge& e2) -> bool {
+                return std::get<2>(e1) < std::get<2>(e2);
               });
 
     std::vector<K::FT> mission_power(m);
@@ -87,22 +86,13 @@ int main() {
         uf.link(c1, c2);
         Index c_new = uf.find_set(std::get<0>(edge));
         Index c_old = (c_new == c1 ? c2 : c1);
-        
-        for (int mission : src_idx[c_old]) {
-          if (target_idx[c_new].find(mission) != target_idx[c_new].end()) {
+
+        for (int mission : mission_idx[c_old]) {
+          if (mission_idx[c_new].find(mission) != mission_idx[c_new].end()) {
             mission_power[mission] = std::get<2>(edge);
-            target_idx[c_new].erase(mission);
+            mission_idx[c_new].erase(mission);
           } else {
-            src_idx[c_new].insert(mission);
-          }
-        }
-        
-        for (int mission : target_idx[c_old]) {
-          if (src_idx[c_new].find(mission) != src_idx[c_new].end()) {
-            mission_power[mission] = std::get<2>(edge);
-            src_idx[c_new].erase(mission);
-          } else {
-            target_idx[c_new].insert(mission);
+            mission_idx[c_new].insert(mission);
           }
         }
 
