@@ -1,10 +1,8 @@
 #include <iostream>
-
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Triangulation_vertex_base_with_info_2.h>
 #include <CGAL/Triangulation_face_base_2.h>
 #include <CGAL/Delaunay_triangulation_2.h>
-
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/bipartite.hpp>
 #include <boost/graph/connected_components.hpp>
@@ -18,8 +16,8 @@ typedef CGAL::Delaunay_triangulation_2<K, Tds>                Triangulation;
 
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS> graph;
 
-bool in_range(const K::Point_2 &a, const K::Point_2 &b, long r) {
-  return (CGAL::squared_distance(a, b) <= r*r);
+bool in_range(const K::Point_2& a, const K::Point_2& b, long r) {
+  return (CGAL::squared_distance(a, b) <= CGAL::square(r));
 }
 
 void solve() {
@@ -56,7 +54,7 @@ void solve() {
         
         auto c2 = t.incident_vertices(c1);
         do {
-          if (!t.is_infinite(c2) && v->info() < c2->info()) {
+          if (!t.is_infinite(c2) && v->info() != c2->info()) {
             if (in_range(v->point(), c2->point(), r)) {
               boost::add_edge(v->info(), c2->info(), network);
             }
@@ -78,8 +76,8 @@ void solve() {
       } else {
         auto station_a = t.nearest_vertex(clues[i].first);
         auto station_b = t.nearest_vertex(clues[i].second);
-        feasible[i] = (in_range(clues[i].first, station_a->point(), r)) &&
-                      (in_range(clues[i].second, station_b->point(), r)) &&
+        feasible[i] = in_range(clues[i].first, station_a->point(), r) &&
+                      in_range(clues[i].second, station_b->point(), r) &&
                       (component_map[station_a->info()] == component_map[station_b->info()]);
       }
     }

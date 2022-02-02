@@ -1,72 +1,68 @@
-#include <bits/stdc++.h>
 #include <iostream>
 #include <vector>
-#include <array>
 
-using namespace std;
+int min_turns(int pos, int turn, const int t, const int min_sit, const int max_sit,
+              const std::vector<std::vector<int>>& transitions,
+              std::vector<std::vector<int>>& cache) {
+  int sit = (turn % 4);
 
-int min_moves(int pos, int n, int turn, int min_sit, int max_sit,
-               const vector<vector<int>> &transitions, 
-               vector<array<int, 4>> &cache) {
-  int situation = turn % 4;
-                 
-  if (pos == n) {
+  if (pos == t) {
     return 0;
-  } else if (cache[pos][situation] != -1) {
-    return cache[pos][situation];
-  } else {
-    int turns;
-    
-    if (situation == min_sit) { // player moves winning meeple
-      turns = INT_MAX;
-      for (const int next_pos : transitions.at(pos)) {
-        turns = min(turns, min_moves(next_pos, n, turn+1, min_sit, max_sit, 
-                                     transitions, cache));
+  } else if (cache[sit][pos] == -1) {
+    int sub_turns;
+
+    if (sit == min_sit) {
+      sub_turns = t+1;
+      for (int next_pos : transitions[pos]) {
+        sub_turns = std::min(sub_turns, min_turns(next_pos, turn+1, t, min_sit, max_sit, transitions, cache));
       }
-    } else if (situation == max_sit) { // player moves losing meeple
-      turns = 0;
-      for (const int next_pos : transitions.at(pos)) {
-        turns = max(turns, min_moves(next_pos, n, turn+1, min_sit, max_sit, 
-                                     transitions, cache));
+    } else if (sit == max_sit) {
+      sub_turns = 0;
+      for (int next_pos : transitions[pos]) {
+        sub_turns = std::max(sub_turns, min_turns(next_pos, turn+1, t, min_sit, max_sit, transitions, cache));
       }
     } else {
-      turns = min_moves(pos, n, turn+1, min_sit, max_sit, transitions, cache);
+      sub_turns = min_turns(pos, turn+1, t, min_sit, max_sit, transitions, cache);
     }
-    
-    cache[pos][situation] = ++turns;
-    return turns;
+
+    cache[sit][pos] = 1 + sub_turns;
   }
+
+  return cache[sit][pos];
+}
+
+void solve() {
+  int n, m;
+  std::cin >> n >> m;
+
+  int r, b;
+  std::cin >> r >> b;
+
+  std::vector<std::vector<int>> transitions(n);
+
+  for (int i = 0; i < m; i++) {
+    int u, v;
+    std::cin >> u >> v;
+
+    transitions[u-1].push_back(v-1);
+  }
+
+  std::vector<std::vector<int>> cache(4, std::vector<int>(n, -1));
+  int red_moves = min_turns(r-1, 0, n-1, 0, 3, transitions, cache);
+
+  cache = std::vector<std::vector<int>>(4, std::vector<int>(n, -1));
+  int black_moves = min_turns(b-1, 0, n-1, 1, 2, transitions, cache);
+
+  std::cout << (black_moves < red_moves) << std::endl;
 }
 
 int main() {
-  ios_base::sync_with_stdio(false);
+  std::ios_base::sync_with_stdio(false);
 
   int t;
-  cin >> t;
-  
-  while(t--) {
-    int n, m;
-    cin >> n >> m;
-    
-    int r, b;
-    cin >> r >> b;
-    
-    vector<vector<int>> transitions(n, vector<int>());
-    
-    for (int i=0; i < m; i++) {
-      int u, v;
-      cin >> u >> v;
-      
-      transitions.at(u-1).push_back(v-1);
-    }
-    
-    vector<array<int, 4>> cache(n, {-1, -1, -1, -1});
-    int red_min = min_moves(r-1, n-1, 0, 0, 3, transitions, cache);
-    
-    cache = vector<array<int, 4>>(n, {-1, -1, -1, -1});
-    int black_min = min_moves(b-1, n-1, 0, 1, 2, transitions, cache);
-    
-    bool moriarty_win = (black_min < red_min);
-    cout << moriarty_win << '\n';
+  std::cin >> t;
+
+  while (t--) {
+    solve();
   }
 }

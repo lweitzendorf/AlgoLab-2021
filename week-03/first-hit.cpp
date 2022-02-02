@@ -2,13 +2,8 @@
 #include <CGAL/Exact_predicates_exact_constructions_kernel.h>
 
 typedef CGAL::Exact_predicates_exact_constructions_kernel K;
-typedef K::Point_2 Point;
-typedef K::Ray_2 Ray;
-typedef K::Segment_2 Segment;
 
-using namespace std;
-
-double floor_to_double(const K::FT& x)
+long FT_floor(const K::FT& x)
 {
   double a = floor(CGAL::to_double(x));
   while (a > x) a -= 1;
@@ -16,77 +11,71 @@ double floor_to_double(const K::FT& x)
   return a;
 }
 
-int main() {
-  ios_base::sync_with_stdio(false);
+void solve(int n) {
+  long x, y, a, b;
+  std::cin >> x >> y >> a >> b;
 
-  int n;
-  cin >> n;
+  K::Point_2 start(x, y);
+  K::Ray_2 photon_ray(start, K::Point_2(a, b));
+  K::Segment_2 photon_seg;
 
-  while (n > 0) {
-    long x, y, a, b;
-    cin >> x >> y >> a >> b;
+  bool intersect = false;
+  std::vector<K::Segment_2> obstacles;
 
-    Point origin(x, y);
-    Ray photon(origin, Point(a, b));
-    Segment photon_limit(origin, Point(a, b));
+  for (int i=0; i<n; i++) {
+    long r, s, t, u;
+    std::cin >> r >> s >> t >> u;
 
-    bool intersection = false;
-    vector<Segment> obstacles;
+    obstacles.emplace_back(K::Point_2(r, s), K::Point_2(t, u));
+  }
 
-    for (int i=0; i<n; i++) {
-      long r, s, t, u;
-      cin >> r >> s >> t >> u;
-      obstacles.push_back(Segment(Point(r, s), Point(t, u)));
-    }
+  std::random_shuffle(obstacles.begin(), obstacles.end());
 
-    random_shuffle(obstacles.begin(), obstacles.end());
-
-    for (const Segment obstacle : obstacles) {
-      if (!intersection) {
-        if (CGAL::do_intersect(photon, obstacle)) {
-          intersection = true;
-          auto intersection = CGAL::intersection(photon, obstacle);
-
-          if (const Point* p = boost::get<Point>(&*intersection)) {
-            photon_limit = Segment(origin, *p);
-          } else if (const Segment* s = boost::get<Segment>(&*intersection)) {
-            K::FT d1 = CGAL::squared_distance(origin, s->source());
-            K::FT d2 = CGAL::squared_distance(origin, s->target());
-
-            if (d1 <= d2) {
-              photon_limit = Segment(origin, s->source());
-            } else {
-              photon_limit = Segment(origin, s->target());
-            }
-          }
+  for (const K::Segment_2 obstacle : obstacles) {
+    if (intersect) {
+      if (CGAL::do_intersect(photon_seg, obstacle)) {
+        auto o = CGAL::intersection(photon_seg, obstacle);
+        if (const K::Point_2* op = boost::get<K::Point_2>(&*o)) {
+          photon_seg = K::Segment_2(start, *op);
+        } else if (const K::Segment_2* os = boost::get<K::Segment_2>(&*o)) {
+          K::FT d1 = CGAL::squared_distance(start, os->source());
+          K::FT d2 = CGAL::squared_distance(start, os->target());
+          K::Point_2 p = (d1 < d2) ? os->source() : os->target();
+          photon_seg = K::Segment_2(start, p);
         }
-      } else if (CGAL::do_intersect(photon_limit, obstacle)) {
-        auto intersection = CGAL::intersection(photon_limit, obstacle);
-
-        if (const Point* p = boost::get<Point>(&*intersection)) {
-          photon_limit = Segment(photon.source(), *p);
-        } else if (const Segment* s = boost::get<Segment>(&*intersection)) {
-          K::FT d1 = CGAL::squared_distance(origin, s->source());
-          K::FT d2 = CGAL::squared_distance(origin, s->target());
-
-          if (d1 <= d2) {
-            photon_limit = Segment(origin, s->source());
-          } else {
-            photon_limit = Segment(origin, s->target());
-          }
+      }
+    } else {
+      if (intersect |= CGAL::do_intersect(photon_ray, obstacle)) {
+        auto o = CGAL::intersection(photon_ray, obstacle);
+        if (const K::Point_2* op = boost::get<K::Point_2>(&*o)) {
+          photon_seg = K::Segment_2(start, *op);
+        } else if (const K::Segment_2* os = boost::get<K::Segment_2>(&*o)) {
+          K::FT d1 = CGAL::squared_distance(start, os->source());
+          K::FT d2 = CGAL::squared_distance(start, os->target());
+          K::Point_2 p = (d1 < d2) ? os->source() : os->target();
+          photon_seg = K::Segment_2(start, p);
         }
       }
     }
+  }
 
-    if (intersection) {
-      Point closest_point = photon_limit.target();
-      cout << setprecision(0) << fixed;
-      cout << floor_to_double(closest_point.x()) << " ";
-      cout << floor_to_double(closest_point.y()) << endl;
-    } else {
-      cout << "no" << endl;
-    }
+  if (intersect) {
+    K::FT x = photon_seg.target().x();
+    K::FT y = photon_seg.target().y();
+    std::cout << FT_floor(x) << " " << FT_floor(y) << std::endl;
+  } else {
+    std::cout << "no" << std::endl;
+  }
+}
 
-    cin >> n;
+int main() {
+  std::ios_base::sync_with_stdio(false);
+
+  int n;
+  std::cin >> n;
+
+  while (n > 0) {
+    solve(n);
+    std::cin >> n;
   }
 }

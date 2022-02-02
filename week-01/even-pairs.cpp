@@ -1,33 +1,35 @@
 #include <iostream>
-#include <vector>
 
-using namespace std;
+void solve() {
+  int n;
+  std::cin >> n;
 
-int main() {
-  int t;
-  cin >> t;
-  
-  while (t--) {
-    int n;
-    cin >> n;
-    
-    int num_pairs = 0;
-    
-    int odd_pairs = 0;
-    int even_pairs = 0;
-    
-    for (int i=0; i < n; i++) {
-      int x;
-      cin >> x;
-      
-      even_pairs++;
-      
-      if (x % 2)
-        swap(odd_pairs, even_pairs);
-      
-      num_pairs += even_pairs;
+  int num_even = 0, num_odd = 0;
+  int num_even_pairs = 0;
+
+  for (int i = 0; i < n; i++) {
+    int x;
+    std::cin >> x;
+
+    num_even++;
+
+    if (x % 2) {
+      std::swap(num_even, num_odd);
     }
 
-    cout << num_pairs << endl;
+    num_even_pairs += num_even;
   }
-} 
+
+  std::cout << num_even_pairs << std::endl;
+}
+
+int main() {
+  std::ios_base::sync_with_stdio(false);
+
+  int t;
+  std::cin >> t;
+
+  while (t--) {
+    solve();
+  }
+}

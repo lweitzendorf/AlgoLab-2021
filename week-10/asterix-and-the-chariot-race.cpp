@@ -1,65 +1,67 @@
 #include <iostream>
 #include <vector>
-#include <unordered_set>
 #include <limits>
+#include <algorithm>
 
-typedef struct  {
-  long selected;
-  long covered;
-  long not_covered;
-} min_cost;
+struct RepairCost {
+  long repaired, covered, not_covered;
+};
 
-min_cost dfs(const std::vector<std::unordered_set<int>>& edges, 
-             const std::vector<int>& cost, int i) {
-  min_cost i_cost = { cost.at(i), 0, 0 };
-               
-  if (edges.at(i).empty()) {
-    i_cost.covered = i_cost.selected;
+RepairCost dfs(int i, const std::vector<std::vector<int>>& stages,
+               const std::vector<int>& repair_cost) {
+  RepairCost cost = { repair_cost[i], 0, 0 };
+
+  if (stages[i].empty()) {
+    cost.covered = cost.repaired;
   } else {
-    long min_select_diff = std::numeric_limits<long>::max();
-    
-    for (int j : edges.at(i)) {
-      min_cost j_cost = dfs(edges, cost, j);
-      
-      i_cost.selected += std::min(j_cost.selected, std::min(j_cost.not_covered, j_cost.covered));
-      i_cost.covered += std::min(j_cost.selected, j_cost.covered);
-      i_cost.not_covered += j_cost.covered;
-      
-      min_select_diff = std::min(min_select_diff, j_cost.selected - j_cost.covered);
+    long min_repair_diff = std::numeric_limits<long>::max();
+
+    for (int j : stages[i]) {
+      auto sub_cost = dfs(j, stages, repair_cost);
+      cost.not_covered += sub_cost.covered;
+      cost.covered += std::min(sub_cost.repaired, sub_cost.covered);
+      cost.repaired += std::min({ sub_cost.repaired, sub_cost.covered, sub_cost.not_covered });
+
+      min_repair_diff = std::min(min_repair_diff, sub_cost.repaired - sub_cost.covered);
     }
-    
-    i_cost.covered = std::max(i_cost.covered, i_cost.covered + min_select_diff);
+
+    cost.covered += std::max(0l, min_repair_diff);
   }
-  
-  return i_cost;
+
+  return cost;
+}
+
+void solve() {
+  int n;
+  std::cin >> n;
+
+  std::vector<std::vector<int>> stages(n);
+  std::vector<int> repair_cost(n);
+
+  for (int s = 1; s < n; s++) {
+    int i, j;
+    std::cin >> i >> j;
+
+    stages[i].push_back(j);
+  }
+
+  for (int i = 0; i < n; i++) {
+    std::cin >> repair_cost[i];
+  }
+
+  auto cost = dfs(0, stages, repair_cost);
+  long min_valid_cost = std::min(cost.repaired, cost.covered);
+
+  std::cout << min_valid_cost << std::endl;
 }
 
 int main() {
   std::ios_base::sync_with_stdio(false);
-  
+
   int t;
   std::cin >> t;
-  
-  while (t--) {
-    int n;
-    std::cin >> n;
-    
-    std::vector<std::unordered_set<int>> edges(n);
-    std::vector<int> cost;
 
-    for (int e = 0; e < n-1; e++) {
-      int i, j;
-      std::cin >> i >> j;
-      edges.at(i).insert(j);
-    }
-    
-    for (int i = 0; i < n; i++) {
-      int c;
-      std::cin >> c;
-      cost.push_back(c);
-    }
-    
-    min_cost final_cost = dfs(edges, cost, 0);
-    std::cout << std::min(final_cost.selected, final_cost.covered) << std::endl;
+  while (t--) {
+    solve();
   }
 }

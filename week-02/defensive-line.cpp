@@ -1,67 +1,71 @@
-#include <bits/stdc++.h>
 #include <iostream>
 #include <vector>
+#include <limits>
 
-using namespace std;
-
-int max_value(int i, int m, int n, vector<int> &attacks, vector<vector<int>> &cache) {
+int best_strategy(int a, int m, const std::vector<std::vector<int>>& segments,
+                  std::vector<std::vector<int>>& cache) {
   if (m == 0) {
     return 0;
-  } else if (i >= n) {
-    return INT_MIN;
-  } else if (cache[i][m] != -1) {
-    return cache[i][m];
-  } else if (attacks[i] == -1) {
-    int value = max_value(i+1, m, n, attacks, cache);
-    cache[i][m] = value;
-    return value;
+  } else if (size_t(a) >= segments.size()) {
+    return std::numeric_limits<int>::min();
+  } else if (cache[a][m] == -1) {
+    cache[a][m] = best_strategy(a+1, m, segments, cache);
+
+    for (int b : segments[a]) {
+      cache[a][m] = std::max(cache[a][m], (b-a+1) + best_strategy(b+1, m-1, segments, cache));
+    }
+  }
+
+  return cache[a][m];
+}
+
+void solve() {
+  int n, m, k;
+  std::cin >> n >> m >> k;
+
+  std::vector<int> defenders(n);
+
+  for (int i = 0; i < n; i++) {
+    std::cin >> defenders[i];
+  }
+  defenders.push_back(0);
+
+  std::vector<std::vector<int>> valid_segments(n);
+
+  int a = 0, b = 0;
+  int defense_value = defenders[0];
+
+  while (b < n) {
+    if (defense_value == k) {
+      valid_segments[a].push_back(b);
+      defense_value += defenders[++b];
+    } else if (defense_value < k) {
+      defense_value += defenders[++b];
+    } else {
+      defense_value -= defenders[a++];
+      if (a > b) {
+        defense_value += defenders[++b];
+      }
+    }
+  }
+
+  std::vector<std::vector<int>> cache(n, std::vector<int>(m+1, -1));
+  int max_strategy_value = best_strategy(0, m, valid_segments, cache);
+
+  if (max_strategy_value < 0) {
+    std::cout << "fail" << std::endl;
   } else {
-    int next_pos = attacks[i] + 1;
-    int attack_value = next_pos - i;
-    int value = max(max_value(i+1, m, n, attacks, cache), 
-                    attack_value + max_value(next_pos, m-1, n, attacks, cache));
-    cache[i][m] = value;
-    return value;
+    std::cout << max_strategy_value << std::endl;
   }
 }
 
 int main() {
-  ios_base::sync_with_stdio(false);
-  
+  std::ios_base::sync_with_stdio(false);
+
   int t;
-  cin >> t;
-  
+  std::cin >> t;
+
   while (t--) {
-    int n, m, k;
-    cin >> n >> m >> k;
-    
-    vector<int> defense;
-    for (int i=0; i<n; i++) {
-      int v;
-      cin >> v;
-      defense.push_back(v);
-    }
-    
-    vector<int> viable_attacks(n, -1);
-    int a = 0, b = 0, sum = defense.at(0);
-    
-    while (b < n) {
-      if (sum == k && viable_attacks.at(a) == -1) {
-        viable_attacks.at(a) = b;
-      } else if (sum < k || a == b) {
-        if (++b < n) sum += defense.at(b);
-      } else {
-        sum -= defense.at(a++);
-      }
-    }
-    
-    vector<vector<int>> cache(n, vector<int>(m+1, -1));
-    int strategy_value = max_value(0, m, n, viable_attacks, cache);
-    
-    if (strategy_value >= 1) {
-      cout << strategy_value << endl;
-    } else {
-      cout << "fail" << endl;
-    }
+    solve();
   }
 }

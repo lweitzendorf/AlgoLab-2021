@@ -1,46 +1,46 @@
 #include <iostream>
 #include <vector>
 
-using namespace std;
-
-int play(vector<int> &v, vector<vector<int>> &scores, int start, int end, int turn) {
-  if (start > end) {
+int min_guaranteed(int a, int b, int turn,
+                   const std::vector<int>& coins,
+                   std::vector<std::vector<int>>& cache){
+  if (a > b) {
     return 0;
-  } else if (scores[start][end] != -1) {
-    return scores[start][end];
-  } else {
-    int score;
-    int outcome_1 = play(v, scores, start + 1, end, turn + 1);
-    int outcome_2 = play(v, scores, start, end - 1, turn + 1);
-    
+  } else if (cache[a][b] == -1) {
+    int scenario_1 = min_guaranteed(a+1, b, turn+1, coins, cache);
+    int scenario_2 = min_guaranteed(a, b-1, turn+1, coins, cache);
+
     if (turn % 2) {
-      score = min(outcome_1, outcome_2);
+      cache[a][b] = std::min(scenario_1, scenario_2);
     } else {
-      score = max(outcome_1 + v.at(start), outcome_2 + v.at(end));
-    } 
-    
-    scores[start][end] = score;
-    return score;
-  } 
+      cache[a][b] = std::max(coins[a] + scenario_1, coins[b] + scenario_2);
+    }
+  }
+
+  return cache[a][b];
+}
+
+void solve() {
+  int n;
+  std::cin >> n;
+
+  std::vector<int> coins(n);
+
+  for (int i = 0; i < n; i++) {
+    std::cin >> coins[i];
+  }
+
+  std::vector<std::vector<int>> cache(n, std::vector<int>(n, -1));
+  std::cout << min_guaranteed(0, n-1, 0, coins, cache) << std::endl;
 }
 
 int main() {
+  std::ios_base::sync_with_stdio(false);
+
   int t;
-  cin >> t;
+  std::cin >> t;
 
   while (t--) {
-    int n;
-    cin >> n;
-    
-    vector<int> values;
-    
-    for (int i=0; i<n; i++) {
-      int x;
-      cin >> x;
-      values.push_back(x);
-    }
-    
-    vector<vector<int>> scores(n, vector<int>(n, -1));
-    cout << play(values, scores, 0, n-1, 0) << endl;
+    solve();
   }
 }

@@ -1,129 +1,119 @@
 #include <iostream>
-#include <set>
-#include <unordered_map>
-#include <tuple>
-#include <queue>
-
+#include <vector>
+#include <algorithm>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/cycle_canceling.hpp>
 #include <boost/graph/push_relabel_max_flow.hpp>
 #include <boost/graph/successive_shortest_path_nonnegative_weights.hpp>
 #include <boost/graph/find_flow_cost.hpp>
 
-// Graph Type with nested interior edge properties for Cost Flow Algorithms
 typedef boost::adjacency_list_traits<boost::vecS, boost::vecS, boost::directedS> traits;
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, boost::no_property,
-    boost::property<boost::edge_capacity_t, long,
+boost::property<boost::edge_capacity_t, long,
         boost::property<boost::edge_residual_capacity_t, long,
-            boost::property<boost::edge_reverse_t, traits::edge_descriptor,
-                boost::property <boost::edge_weight_t, long>>>>> graph; // new! weightmap corresponds to costs
+        boost::property<boost::edge_reverse_t, traits::edge_descriptor,
+        boost::property <boost::edge_weight_t, long> > > > > graph;
+typedef boost::graph_traits<graph>::edge_descriptor             edge_desc;
+typedef boost::graph_traits<graph>::out_edge_iterator           out_edge_it;
 
-typedef boost::graph_traits<graph>::vertex_descriptor vertex_desc;
-typedef boost::graph_traits<graph>::edge_descriptor edge_desc;
-
-// Custom edge adder class
 class edge_adder {
- graph &G;
+  graph &G;
 
- public:
+  public:
   explicit edge_adder(graph &G) : G(G) {}
   void add_edge(int from, int to, long capacity, long cost) {
     auto c_map = boost::get(boost::edge_capacity, G);
     auto r_map = boost::get(boost::edge_reverse, G);
-    auto w_map = boost::get(boost::edge_weight, G); // new!
+    auto w_map = boost::get(boost::edge_weight, G);
     const edge_desc e = boost::add_edge(from, to, G).first;
     const edge_desc rev_e = boost::add_edge(to, from, G).first;
     c_map[e] = capacity;
-    c_map[rev_e] = 0; // reverse edge has no capacity!
+    c_map[rev_e] = 0;
     r_map[e] = rev_e;
     r_map[rev_e] = e;
-    w_map[e] = cost;   // new assign cost
-    w_map[rev_e] = -cost;   // new negative cost
+    w_map[e] = cost;
+    w_map[rev_e] = -cost;
   }
 };
 
 void solve() {
   int N, S;
   std::cin >> N >> S;
-  
-  std::vector<std::set<int>> times_used(S);
-  std::vector<std::unordered_map<int, vertex_desc>> time_to_vertex(S);
-  
-  int num_nodes = 0;
-  int total_num_cars = 0;
-  
-  const int MAX_PROFIT = 100;
-  const int MAX_TIME = 100000;
-  
-  std::vector<int> cars_available(S);
 
-  for (int i = 0; i < S; i++) {
-    std::cin >> cars_available[i];
-    total_num_cars += cars_available[i];
-    
-    if (times_used[i].insert(0).second)
-      time_to_vertex[i][0] = num_nodes++;
-      
-    if (times_used[i].insert(MAX_TIME).second)
-      time_to_vertex[i][MAX_TIME] = num_nodes++;
+  graph G(2);
+  edge_adder adder(G);
+
+  const auto v_source = 0;
+  const auto v_target = 1;
+
+  long MAX_TIME = 100000;
+  long MAX_PROFIT = 100;
+
+  std::vector<std::vector<int>> booked_times(S);
+  std::vector<std::vector<int>> v_time(S, std::vector<int>(MAX_TIME+1, -1));
+
+  int total_num_cars = 0;
+
+  for (int s = 0; s < S; s++) {
+    int l;
+    std::cin >> l;
+
+    total_num_cars += l;
+    booked_times[s].push_back(0);
+    v_time[s][0] = boost::add_vertex(G);
+    adder.add_edge(v_source, v_time[s][0], l, 0);
   }
-  
-  std::vector<std::tuple<int, int, int, int, int>> bookings;
-  
-  for (int i = 0; i < N; i++) {
+
+  for (int s = 0; s < S; s++) {
+    booked_times[s].push_back(MAX_TIME);
+    v_time[s][MAX_TIME] = boost::add_vertex(G);
+    adder.add_edge(v_time[s][MAX_TIME], v_target, total_num_cars, 0);
+  }
+
+  for (int n = 0; n < N; n++) {
     int s, t, d, a, p;
     std::cin >> s >> t >> d >> a >> p;
-    bookings.emplace_back(s-1, t-1, d, a, p);
-    
-    if (times_used[s-1].insert(d).second)
-      time_to_vertex[s-1][d] = num_nodes++;
-      
-    if (times_used[t-1].insert(a).second)
-      time_to_vertex[t-1][a] = num_nodes++;
-  }
-  
-  graph G(num_nodes);
-  edge_adder adder(G);
-  
-  const vertex_desc v_source = boost::add_vertex(G);
-  const vertex_desc v_target = boost::add_vertex(G);
 
-  for (int i = 0; i < S; i++) {
-    vertex_desc last_v = v_source;
-    int last_t = 0;
+    s--;
+    t--;
 
-    for (int t : times_used[i]) {
-      auto v = time_to_vertex[i][t];
-      int c = (t == 0 ? cars_available[i] : total_num_cars);
-
-      adder.add_edge(last_v, v, c, (t-last_t)*MAX_PROFIT);
-      last_v = v;
-      last_t = t;
+    if (v_time[s][d] == -1) {
+      v_time[s][d] = boost::add_vertex(G);
+      booked_times[s].push_back(d);
     }
-    
-    adder.add_edge(time_to_vertex[i][MAX_TIME], v_target, total_num_cars, 0);
-  }
-  
-  for (auto &b : bookings) {
-    int d = std::get<2>(b), a = std::get<3>(b);
-    vertex_desc v1 = time_to_vertex[std::get<0>(b)][d];
-    vertex_desc v2 = time_to_vertex[std::get<1>(b)][a];
-    
-    adder.add_edge(v1, v2, 1, (a-d)*MAX_PROFIT - std::get<4>(b));
+
+    if (v_time[t][a] == -1) {
+      v_time[t][a] = boost::add_vertex(G);
+      booked_times[t].push_back(a);
+    }
+
+    adder.add_edge(v_time[s][d], v_time[t][a], 1, (a-d)*MAX_PROFIT - p);
   }
 
-  int flow = boost::push_relabel_max_flow(G, v_source, v_target);
+  for (int s = 0; s < S; s++) {
+    std::vector<int>& times = booked_times[s];
+
+    int num_times = times.size();
+    std::sort(times.begin(), times.end());
+
+    for (int i = 1; i < num_times; i++) {
+      int t1 = times[i-1], t2 = times[i];
+      adder.add_edge(v_time[s][t1], v_time[s][t2], total_num_cars, (t2-t1)*MAX_PROFIT);
+    }
+  }
+
   boost::successive_shortest_path_nonnegative_weights(G, v_source, v_target);
-  int cost = flow*MAX_TIME*MAX_PROFIT - boost::find_flow_cost(G);
-  std::cout << cost << std::endl;
+  long max_profit = total_num_cars*MAX_TIME*MAX_PROFIT - boost::find_flow_cost(G);
+
+  std::cout << max_profit << std::endl;
 }
 
 int main() {
   std::ios_base::sync_with_stdio(false);
-  
+
   int t;
   std::cin >> t;
-  
+
   while (t--) {
     solve();
   }

@@ -1,123 +1,101 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <limits>
 
-int main() {
-  int t;
-  std::cin >> t;
+struct PotionA {
+  long p, h;
+};
 
-  while (t--) {
-    int n, m;
-    std::cin >> n >> m;
+void solve() {
+  int n, m;
+  std::cin >> n >> m;
 
-    long a, b;
-    std::cin >> a >> b;
+  long a, b;
+  std::cin >> a >> b;
 
-    long P, H, W;
-    std::cin >> P >> H >> W;
+  long P, H, W;
+  std::cin >> P >> H >> W;
 
-    std::vector<std::pair<long, long>> potions_a;
-    std::vector<int> potions_b;
+  std::vector<PotionA> potions_a(n);
+  std::vector<long> potions_b(m);
 
-    for (int i = 0; i < n; i++) {
-      long p, h;
-      std::cin >> p >> h;
-      potions_a.emplace_back(p, h);
-    }
+  for (int i = 0; i < n; i++) {
+    std::cin >> potions_a[i].p >> potions_a[i].h;
+  }
 
-    for (int i = 0; i < m; i++) {
-      long w;
-      std::cin >> w;
-      potions_b.push_back(w);
-    }
-    
-    std::vector<std::vector<long>> max_power(n, std::vector<long>(1025, -1));
-    
-    std::vector<std::vector<bool>> potions_used(1025, std::vector<bool>(n, false));
-    std::vector<long> first_potions(1025, -1);
-    
-    for (int i = 0; i < n; i++) {
-      long p = potions_a[i].first;
-      long h = potions_a[i].second;
-      if (p > max_power[0][h]) {
-        max_power[0][h] = p;
-        first_potions[h] = i;
-      }
-    }
-    
-    for (int h = 0; h <= 1024; h++) {
-      if (first_potions[h] != -1) {
-        potions_used[h][first_potions[h]] = true;
-      }
-    }
-    
-    for (int k = 1; k < n; k++) {
-      std::vector<std::pair<int, long>> new_potions(1025, { -1, -1 });
-      
-      for (int h1 = 0; h1 <= 1024; h1++) {
-        for (int i = 0; i < n; i++) {
-          if (!potions_used[h1][i] && max_power[k-1][h1] != -1) {
-            long p = max_power[k-1][h1] + potions_a[i].first;
-            long h = std::min(1024l, h1 + potions_a[i].second);
-            if (p > max_power[k][h]) {
-              max_power[k][h] = p;
-              new_potions[h] = std::make_pair(i, h1);
+  for (int i = 0; i < m; i++) {
+    std::cin >> potions_b[i];
+  }
+
+  std::vector<std::vector<bool>> used_potions_old(H+1, std::vector<bool>(n, false));
+  std::vector<std::vector<bool>> used_potions_new(H+1, std::vector<bool>(n, false));
+  std::vector<std::vector<long>> max_power(n+1, std::vector<long>(H+1, -1));
+  max_power[0][0] = 0;
+
+  for (int i = 1; i <= n; i++) {
+    std::vector<long> best_j(H+1, -1), old_h(H+1, -1);
+
+    for (int h = 0; h <= H; h++) {
+      if (max_power[i-1][h] != -1) {
+        for (int j = 0; j < n; j++) {
+          if (!used_potions_old[h][j]) {
+            long new_h = std::min(h + potions_a[j].h, H);
+            long new_p = max_power[i-1][h] + potions_a[j].p;
+
+            if (new_p > max_power[i][new_h]) {
+              best_j[new_h] = j;
+              old_h[new_h] = h;
+              max_power[i][new_h] = new_p;
             }
           }
         }
       }
-      
-      std::vector<std::vector<bool>> next_potions_used(1025, std::vector<bool>(n, false));
-      
-      for (int h = 0; h <= 1024; h++) {
-        if (new_potions[h].first != -1) {
-          int potion_idx = new_potions[h].first;
-          long old_h = new_potions[h].second;
-          
-          for (int i = 0; i < n; i++) {
-            next_potions_used[h][i] = potions_used[old_h][i];
-          }
-          next_potions_used[h][potion_idx] = true;
-        }
-      }
-      potions_used = next_potions_used;
     }
-    
-    std::vector<long> max_eligible_power(n, -1);
-    for (int k = 0; k < n; k++) { 
-      for (int h = H; h <= 1024; h++) {
-        max_eligible_power[k] = std::max(max_eligible_power[k], max_power[k][h]);
-      }
-    }
-    
-    std::sort(potions_b.begin(), potions_b.end(), std::greater<>());
-    int total_min = std::numeric_limits<int>::max();
-    
-    for (int k_a = 0; k_a < n; k_a++) {
-      int num_a = k_a + 1;
-      if (max_eligible_power[k_a] != -1) {
-        long power = max_eligible_power[k_a];
-        long wit = -a * num_a;
-        
-        for (int k_b = 0; k_b < m; k_b++) {
-          int num_b = k_b + 1;
-          wit += potions_b[k_b];
-          power -= b;
-          
-          if (power < P) {
-            break;
-          } else if (wit >= W) {
-            total_min = std::min(total_min, num_a + num_b);
-            break;
-          }
-        }
+
+    for (int h = 0; h <= H; h++) {
+      if (best_j[h] != -1) {
+        used_potions_new[h] = used_potions_old[old_h[h]];
+        used_potions_new[h][best_j[h]] = true;
+      } else {
+        used_potions_new[h] = std::vector<bool>(n, false);
       }
     }
 
-    if (total_min == std::numeric_limits<int>::max()) {
-      std::cout << -1 << std::endl;
-    } else {
-      std::cout << total_min << std::endl;
+    std::swap(used_potions_old, used_potions_new);
+  }
+
+  int min_potions = std::numeric_limits<int>::max();
+  std::sort(potions_b.begin(), potions_b.end(), std::greater<>());
+
+  for (int num_a = 1; num_a <= n; num_a++) {
+    long p = max_power[num_a][H];
+    long w = -(a * num_a);
+
+    for (int num_b = 1; num_b <= m; num_b++) {
+      w += potions_b[num_b-1];
+      p -= b;
+
+      if (p < P) {
+        break;
+      } else if (w >= W) {
+        min_potions = std::min(min_potions, num_a + num_b);
+        break;
+      }
     }
+  }
+
+  bool possible = (min_potions <= n + m);
+  std::cout << (possible ? min_potions : -1) << std::endl;
+}
+
+int main() {
+  std::ios_base::sync_with_stdio(false);
+
+  int t;
+  std::cin >> t;
+
+  while (t--) {
+    solve();
   }
 }

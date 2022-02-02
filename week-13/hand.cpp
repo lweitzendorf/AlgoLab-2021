@@ -1,12 +1,12 @@
+#include <iostream>
+#include <vector>
+#include <tuple>
+#include <algorithm>
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Delaunay_triangulation_2.h>
 #include <CGAL/Triangulation_vertex_base_with_info_2.h>
 #include <CGAL/Triangulation_face_base_2.h>
 #include <boost/pending/disjoint_sets.hpp>
-#include <vector>
-#include <tuple>
-#include <algorithm>
-#include <iostream>
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
 typedef std::size_t                                            Index;
@@ -38,7 +38,6 @@ void solve() {
   for (auto e = t.finite_edges_begin(); e != t.finite_edges_end(); ++e) {
     Index i1 = e->first->vertex((e->second+1)%3)->info();
     Index i2 = e->first->vertex((e->second+2)%3)->info();
-    // ensure smaller index comes first
     if (i1 > i2) std::swap(i1, i2);
     edges.emplace_back(i1, i2, t.segment(e).squared_length());
   }
@@ -113,7 +112,8 @@ void solve() {
           break;
       }
     
-      if (--n_components == 1) break;
+      if (--n_components == 1)
+        break;
     }
   }
   

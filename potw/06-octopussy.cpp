@@ -2,46 +2,53 @@
 #include <vector>
 #include <algorithm>
 
-int defuse(std::vector<bool>& defused, int i, int n) {
-  if (i >= n || defused[i])
+long defuse(int b, std::vector<bool>& defused, const std::vector<std::pair<long, int>>& bombs) {
+  if (unsigned(b) >= defused.size() || defused[b]) {
     return 0;
-  
-  defused[i] = true;
-  return 1 + defuse(defused, 2*i+1, n) + defuse(defused, 2*i+2, n);
+  } else {
+    defused[b] = true;
+    return 1 + defuse(2*b+1, defused, bombs) + defuse(2*b+2, defused, bombs);
+  }
+}
+
+void solve() {
+  int n;
+  std::cin >> n;
+
+  std::vector<std::pair<long, int>> bombs;
+
+  for (int i = 0; i < n; i++) {
+    long t;
+    std::cin >> t;
+
+    bombs.emplace_back(t, i);
+  }
+
+  std::sort(bombs.begin(), bombs.end());
+  std::vector<bool> defused(n, false);
+
+  long total_defuse_time = 0;
+  bool success = true;
+
+  for (auto& b : bombs) {
+    total_defuse_time += defuse(b.second, defused, bombs);
+
+    if (total_defuse_time > b.first) {
+      success = false;
+      break;
+    }
+  }
+
+  std::cout << (success ? "yes" : "no") << std::endl;
 }
 
 int main() {
   std::ios_base::sync_with_stdio(false);
-  
+
   int t;
   std::cin >> t;
-  
-  while(t--) {
-    int n;
-    std::cin >> n;
-    
-    std::vector<std::pair<int, int>> detonation_time;
-    for (int i = 0; i < n; i++) {
-      int t;
-      std::cin >> t;
-      detonation_time.emplace_back(t, i);
-    }
-    
-    std::sort(detonation_time.begin(), detonation_time.end());
-    std::vector<bool> defused(n, false);
-    
-    bool will_detonate = false;
-    int total_defuse_time = 0;
-    
-    for (auto pair : detonation_time) {
-      int t = pair.first, i = pair.second;
-      total_defuse_time += defuse(defused, i, n);
-      if (t < total_defuse_time) {
-        will_detonate = true;
-        break;
-      }
-    }
-    
-    std::cout << (will_detonate ? "no" : "yes") << std::endl;
+
+  while (t--) {
+    solve();
   }
 }

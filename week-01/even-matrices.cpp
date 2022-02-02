@@ -1,51 +1,53 @@
 #include <iostream>
 #include <vector>
 
-using namespace std;
+void solve() {
+  int n;
+  std::cin >> n;
+
+  std::vector<std::vector<int>> prefix_sums(n, std::vector<int>(n));
+
+  for (int i = 0; i < n; i++) {
+    int row_sum = 0;
+
+    for (int j = 0; j < n; j++) {
+      int x;
+      std::cin >> x;
+      row_sum += x;
+      prefix_sums[i][j] = row_sum;
+    }
+  }
+
+  int num_even_pairs = 0;
+
+  for (int width = 1; width <= n; width++) {
+    for (int col = 0; col <= n - width; col++) {
+      int num_odd = 0, num_even = 0;
+
+      for (int height = 1; height <= n; height++) {
+        num_even++;
+
+        int prev_sum = col ? prefix_sums[height - 1][col - 1] : 0;
+
+        if ((prefix_sums[height - 1][col + width - 1] - prev_sum) % 2) {
+          std::swap(num_odd, num_even);
+        }
+
+        num_even_pairs += num_even;
+      }
+    }
+  }
+
+  std::cout << num_even_pairs << std::endl;
+}
 
 int main() {
+  std::ios_base::sync_with_stdio(false);
+
   int t;
-  cin >> t;
-  
+  std::cin >> t;
+
   while (t--) {
-    int n;
-    cin >> n;
-    
-    vector<vector<int>> row_sums;
-    
-    for (int row=0; row < n; row++) {
-      row_sums.push_back(vector<int>());
-      
-      int sum = 0;
-      
-      for (int col=0; col < n; col++) {
-        int x;
-        cin >> x;
-        sum += x;
-        row_sums.at(row).push_back(sum);
-      }
-    }
-    
-    int num_pairs = 0;
-    
-    for (int width=1; width <= n; width++) {
-      for (int col=0; col <= n - width; col++) {
-        int even = 0;
-        int odd = 0;
-        
-        for (int row=0; row < n; row++) {
-          int prev_sum = col ? row_sums.at(row).at(col - 1) : 0;
-          int x = row_sums.at(row).at(col + width - 1) - prev_sum;
-          
-          even++;
-          if (x % 2)
-            swap(even, odd);
-            
-          num_pairs += even;
-        }
-      }
-    }
-    
-    cout << num_pairs << endl;
+    solve();
   }
 }
