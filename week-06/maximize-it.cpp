@@ -69,7 +69,6 @@ void solve(int p) {
     } else {
       long opt = std::ceil(CGAL::to_double(s.objective_value()));
       std::cout << opt << std::endl;
-
     }
   }
 }

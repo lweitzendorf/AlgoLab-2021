@@ -84,7 +84,7 @@ void solve() {
 
   adder.add_edge(v_free_w, v_target, num_free_w, 0);
 
-  bool feasible = (num_free_e >= 0) && (num_free_w >= 0) &&
+  bool feasible = (std::min(num_free_e, num_free_w) >= 0) &&
                   (boost::push_relabel_max_flow(G, v_source, v_target) == p);
 
   if (feasible) {

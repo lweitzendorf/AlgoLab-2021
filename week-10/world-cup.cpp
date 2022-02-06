@@ -71,16 +71,14 @@ void solve() {
   std::vector<std::vector<int>> w_lines(n), s_lines(m);
   std::vector<std::vector<int>> num_lines_crossed(n, std::vector<int>(m));
 
-  for (int w = 0; w < n; w++) {
-    for (int l = 0; l < c; l++) {
+  for (int l = 0; l < c; l++) {
+    for (int w = 0; w < n; w++) {
       if (lines[l].in_range(warehouses[w].p)) {
         w_lines[w].push_back(l);
       }
     }
-  }
 
-  for (int s = 0; s < m; s++) {
-    for (int l = 0; l < c; l++) {
+    for (int s = 0; s < m; s++) {
       if (lines[l].in_range(stadiums[s].p)) {
         s_lines[s].push_back(l);
       }
@@ -90,12 +88,9 @@ void solve() {
   for (int w = 0; w < n; w++) {
     for (int s = 0; s < m; s++) {
       std::vector<int> diff;
-      std::set_difference(w_lines[w].begin(), w_lines[w].end(),
-                          s_lines[s].begin(), s_lines[s].end(),
-                          std::back_inserter(diff));
-      std::set_difference(s_lines[s].begin(), s_lines[s].end(),
-                          w_lines[w].begin(), w_lines[w].end(),
-                          std::back_inserter(diff));
+      std::set_symmetric_difference(w_lines[w].begin(), w_lines[w].end(),
+                                    s_lines[s].begin(), s_lines[s].end(),
+                                    std::back_inserter(diff));
       num_lines_crossed[w][s] = diff.size();
     }
   }
