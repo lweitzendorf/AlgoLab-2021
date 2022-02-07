@@ -10,11 +10,11 @@
 typedef boost::adjacency_list_traits<boost::vecS, boost::vecS, boost::directedS> traits;
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, boost::no_property,
 boost::property<boost::edge_capacity_t, long,
-        boost::property<boost::edge_residual_capacity_t, long,
-        boost::property<boost::edge_reverse_t, traits::edge_descriptor,
-        boost::property <boost::edge_weight_t, long> > > > > graph;
-typedef boost::graph_traits<graph>::edge_descriptor             edge_desc;
-typedef boost::graph_traits<graph>::out_edge_iterator           out_edge_it;
+  boost::property<boost::edge_residual_capacity_t, long,
+    boost::property<boost::edge_reverse_t, traits::edge_descriptor,
+      boost::property <boost::edge_weight_t, long>>>>> graph;
+typedef boost::graph_traits<graph>::edge_descriptor edge_desc;
+typedef boost::graph_traits<graph>::out_edge_iterator out_edge_it;
 
 class edge_adder {
   graph &G;
@@ -74,15 +74,12 @@ void solve() {
     int s, t, d, a, p;
     std::cin >> s >> t >> d >> a >> p;
 
-    s--;
-    t--;
-
-    if (v_time[s][d] == -1) {
+    if (v_time[--s][d] == -1) {
       v_time[s][d] = boost::add_vertex(G);
       booked_times[s].push_back(d);
     }
 
-    if (v_time[t][a] == -1) {
+    if (v_time[--t][a] == -1) {
       v_time[t][a] = boost::add_vertex(G);
       booked_times[t].push_back(a);
     }

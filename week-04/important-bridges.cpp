@@ -14,7 +14,7 @@ namespace boost {
 }
 
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, boost::no_property,
-        boost::property<boost::edge_component_t, std::size_t>> graph;
+  boost::property<boost::edge_component_t, std::size_t>> graph;
 typedef boost::graph_traits<graph>::edge_descriptor edge_desc;
 typedef boost::graph_traits<graph>::edge_iterator edge_it;
 

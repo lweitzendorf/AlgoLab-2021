@@ -14,15 +14,15 @@ struct Chamber {
   std::vector<Tunnel> tunnels;
 };
 
-void find_size(std::vector<Chamber> &chambers, int c) {
-  for (auto &tunnel : chambers[c].tunnels) {
+void find_size(std::vector<Chamber>& chambers, int c) {
+  for (auto& tunnel : chambers[c].tunnels) {
     find_size(chambers, tunnel.chamber);
     chambers[c].n += chambers[tunnel.chamber].n + 1;
     chambers[c].t += chambers[tunnel.chamber].t + tunnel.length;
   }
   
   std::sort(chambers[c].tunnels.begin(), chambers[c].tunnels.end(),
-    [&chambers, c](auto &t1, auto &t2) -> bool {
+    [&chambers](auto& t1, auto& t2) -> bool {
       const long c1 = chambers[t1.chamber].t + t1.length;
       const long n1 = chambers[t1.chamber].n + 1;
       const long c2 = chambers[t2.chamber].t + t2.length;
@@ -31,9 +31,9 @@ void find_size(std::vector<Chamber> &chambers, int c) {
     });
 }
 
-long get_galleons(const std::vector<Chamber> &chambers, int c, long t) {
+long get_galleons(const std::vector<Chamber>& chambers, int c, long t) {
   long galleons = chambers[c].galleons - t;
-  for (auto &tunnel : chambers[c].tunnels) {
+  for (auto& tunnel : chambers[c].tunnels) {
     galleons += get_galleons(chambers, tunnel.chamber, t + tunnel.length);
     t += 2 * (chambers[tunnel.chamber].t + tunnel.length);
   }

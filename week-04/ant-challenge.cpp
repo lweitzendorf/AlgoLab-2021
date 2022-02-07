@@ -5,10 +5,10 @@
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
-boost::no_property, boost::property<boost::edge_weight_t, int>> graph;
+  boost::no_property, boost::property<boost::edge_weight_t, int>> graph;
 typedef boost::property_map<graph, boost::edge_weight_t>::type weight_map;
-typedef boost::graph_traits<graph>::edge_descriptor            edge_desc;
-typedef boost::graph_traits<graph>::vertex_descriptor          vertex_desc;
+typedef boost::graph_traits<graph>::edge_descriptor edge_desc;
+typedef boost::graph_traits<graph>::vertex_descriptor vertex_desc;
 
 struct TreeEdge {
   int t1, t2;

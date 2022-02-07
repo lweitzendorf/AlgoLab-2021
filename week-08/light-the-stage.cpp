@@ -4,7 +4,7 @@
 #include <CGAL/Delaunay_triangulation_2.h>
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
-typedef CGAL::Delaunay_triangulation_2<K>  Triangulation;
+typedef CGAL::Delaunay_triangulation_2<K> Triangulation;
 
 void find_survivors(const std::vector<std::pair<K::Point_2, long>>& participants,
                     const std::vector<K::Point_2>& lamps, int round, long h,

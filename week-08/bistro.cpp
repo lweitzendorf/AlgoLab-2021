@@ -4,7 +4,7 @@
 #include <CGAL/Delaunay_triangulation_2.h>
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
-typedef CGAL::Delaunay_triangulation_2<K>  Triangulation;
+typedef CGAL::Delaunay_triangulation_2<K> Triangulation;
 
 void solve(int n) {
   std::vector<K::Point_2> restaurants;
