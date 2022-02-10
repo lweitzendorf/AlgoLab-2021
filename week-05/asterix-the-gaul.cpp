@@ -8,13 +8,15 @@ struct Movement {
 };
 
 long max_coverable_distance(const std::vector<Movement>& moves, const long t) {
-  auto lower = std::lower_bound(moves.begin(), moves.end(), t,
-                                [](auto& m, long t) { return m.t < t; });
-  return (lower == moves.begin()) ? 0 : (lower-1)->d;
+  auto upper = std::upper_bound(moves.begin(), moves.end(), t,
+                                [](long t, auto& m) { return m.t > t; });
+  return (upper == moves.begin()) ? -1 : (upper-1)->d;
 }
 
 void max_distance_by_time(std::vector<std::vector<Movement>>& in,
                           std::vector<std::vector<Movement>>& out) {
+  out[0].push_back({ 0, 0 });
+
   for (int k = 1; k < int(in.size()); k++) {
     if (in[k].empty())
       continue;
@@ -83,21 +85,11 @@ void solve() {
 
   std::vector<long> best_distance(n+1, 0);
 
-  for (int k1 = 1; k1 <= n1; k1++) {
-    long d = max_coverable_distance(best_moves_1[k1], T);
-    best_distance[k1] = std::max(best_distance[k1], d);
-  }
-
-  for (int k2 = 1; k2 <= n2; k2++) {
-    long d = max_coverable_distance(best_moves_2[k2], T);
-    best_distance[k2] = std::max(best_distance[k2], d);
-  }
-
-  for (int k1 = 1; k1 <= n1; k1++) {
-    for (int k2 = 1; k2 <= n2; k2++) {
+  for (int k1 = 0; k1 <= n1; k1++) {
+    for (int k2 = 0; k2 <= n2; k2++) {
       for (auto& m1 : best_moves_1[k1]) {
-        long d2 = max_coverable_distance(best_moves_2[k2], T-m1.t);
-        if (d2 > 0) {
+        long d2 = max_coverable_distance(best_moves_2[k2], T-m1.t-1);
+        if (d2 != -1) {
           int k = k1 + k2;
           best_distance[k] = std::max(best_distance[k], m1.d + d2);
         }

@@ -48,8 +48,11 @@ void solve() {
     std::cin >> back[i];
   }
 
-  std::vector<int> letter_count(26, 0);
-  std::vector<std::vector<int>> piece_count(26, std::vector<int>(26, 0));
+  int num_letters = 26;
+  int num_pieces = num_letters * num_letters;
+
+  std::vector<int> letter_count(num_letters, 0);
+  std::vector<std::vector<int>> piece_count(num_letters, std::vector<int>(num_letters, 0));
 
   for (int i = 0; i < n; i++) {
     letter_count[note[i] - 'A']++;
@@ -62,9 +65,6 @@ void solve() {
       piece_count[front_letter - 'A'][back_letter - 'A']++;
     }
   }
-
-  int num_letters = 26;
-  int num_pieces = num_letters * num_letters;
 
   graph G(num_pieces + num_letters);
   edge_adder adder(G);
