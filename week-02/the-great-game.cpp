@@ -12,7 +12,7 @@ int min_turns(int pos, int turn, const int t, const int min_sit, const int max_s
     int sub_turns;
 
     if (sit == min_sit) {
-      sub_turns = t+1;
+      sub_turns = 2*n;
       for (int next_pos : transitions[pos]) {
         sub_turns = std::min(sub_turns, min_turns(next_pos, turn+1, t, min_sit, max_sit, transitions, cache));
       }
