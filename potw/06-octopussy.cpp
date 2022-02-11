@@ -28,18 +28,17 @@ void solve() {
   std::vector<bool> defused(n, false);
 
   long total_defuse_time = 0;
-  bool success = true;
 
   for (auto& b : bombs) {
     total_defuse_time += defuse(b.second, defused, bombs);
 
     if (total_defuse_time > b.first) {
-      success = false;
-      break;
+      std::cout << "no" << std::endl;
+      return;
     }
   }
 
-  std::cout << (success ? "yes" : "no") << std::endl;
+  std::cout << "yes" << std::endl;
 }
 
 int main() {

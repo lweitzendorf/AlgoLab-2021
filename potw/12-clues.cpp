@@ -7,12 +7,12 @@
 #include <boost/graph/bipartite.hpp>
 #include <boost/graph/connected_components.hpp>
 
-typedef CGAL::Exact_predicates_inexact_constructions_kernel   K;
-typedef std::size_t                                           Index;
+typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
+typedef std::size_t Index;
 typedef CGAL::Triangulation_vertex_base_with_info_2<Index, K> Vb;
-typedef CGAL::Triangulation_face_base_2<K>                    Fb;
-typedef CGAL::Triangulation_data_structure_2<Vb, Fb>          Tds;
-typedef CGAL::Delaunay_triangulation_2<K, Tds>                Triangulation;
+typedef CGAL::Triangulation_face_base_2<K> Fb;
+typedef CGAL::Triangulation_data_structure_2<Vb, Fb> Tds;
+typedef CGAL::Delaunay_triangulation_2<K, Tds> Triangulation;
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS> graph;
 
 bool in_range(const K::Point_2& a, const K::Point_2& b, long r) {

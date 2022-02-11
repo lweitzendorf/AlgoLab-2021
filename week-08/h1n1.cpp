@@ -7,10 +7,10 @@
 #include <CGAL/Triangulation_face_base_with_info_2.h>
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
-typedef CGAL::Triangulation_vertex_base_2<K>                Vb;
+typedef CGAL::Triangulation_vertex_base_2<K> Vb;
 typedef CGAL::Triangulation_face_base_with_info_2<K::FT, K> Fb;
-typedef CGAL::Triangulation_data_structure_2<Vb,Fb>         Tds;
-typedef CGAL::Delaunay_triangulation_2<K,Tds>               Delaunay;
+typedef CGAL::Triangulation_data_structure_2<Vb, Fb> Tds;
+typedef CGAL::Delaunay_triangulation_2<K, Tds> Delaunay;
 
 void solve(int n) {
   std::vector<K::Point_2> infected;
@@ -31,7 +31,7 @@ void solve(int n) {
     f->info() = 0;
 
     if (t.is_infinite(f)) {
-      q.emplace(std::numeric_limits<long>::max(), f);
+      q.emplace(std::numeric_limits<K::FT>::max(), f);
     }
   }
 

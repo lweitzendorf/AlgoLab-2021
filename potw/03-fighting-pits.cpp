@@ -103,9 +103,9 @@ void solve() {
   int num_states = std::pow(k, m-1);
 
   std::vector<std::vector<std::vector<std::vector<int>>>> cache(n,
-  std::vector<std::vector<std::vector<int>>>(num_states,
-    std::vector<std::vector<int>>(num_states,
-      std::vector<int>(12, -1))));
+    std::vector<std::vector<std::vector<int>>>(num_states,
+      std::vector<std::vector<int>>(num_states,
+        std::vector<int>(12, -1))));
 
   int excitement = max_excitement(fighters, 0, false, {}, 0, {}, 0, cache);
   std::cout << excitement << std::endl;

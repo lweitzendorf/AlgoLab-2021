@@ -53,7 +53,7 @@ void solve() {
   for (int i = 0; i < n; i++) {
     int u, v, l;
     std::cin >> u >> v >> l;
-    chambers[u].tunnels.push_back(Tunnel { .chamber = v, .length = l });
+    chambers[u].tunnels.push_back({ v, l });
   }
   
   find_size(chambers, 0);
